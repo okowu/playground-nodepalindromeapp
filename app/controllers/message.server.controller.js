@@ -24,12 +24,13 @@ exports.getMessages = function (req, res) {
 exports.getSingleMessage = function (req, res) {
     model.findById(req.params.id, { text: 1 })
         .exec(function (err, message) {
-            if (!message || err) {
+            if (_.isEmpty(message) || err) {
                 res.status(404).send({
                     message: 'Message not found'
                 });
                 return;
             }
+
             res.json(message);
         });
 };
@@ -69,7 +70,7 @@ exports.deleteMessage = function (req, res) {
 
     model.findById(req.params.id)
         .exec(function (err, message) {
-            if (!message || err) {
+            if (_.isEmpty(message) || err) {
                 res.status(404).send({
                     message: 'Message not found'
                 });
