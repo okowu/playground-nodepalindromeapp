@@ -8,6 +8,7 @@ let compress = require('compression')
 let methodOverride = require('method-override')
 let config = require('./config')
 let router = express.Router()
+let metrics = require('../app/util/metrics')
 
 module.exports = function () {
 	// Initialize express app
@@ -21,6 +22,18 @@ module.exports = function () {
 	// Passing the request url to environment locals
 	app.use(function (req, res, next) {
 		res.locals.url = req.protocol + '://' + req.headers.host + req.url;
+
+		// Add metric on request execution duration
+		const start = process.hrtime.bigint();
+		res.on('finish', () => {
+			const duration = process.hrtime.bigint(start);
+			const durationInSeconds = Number(duration - start) / 1e9;
+
+			metrics.httpRequestDurationMicroseconds
+				.labels(req.method, req.route ? req.route.path : req.path, res.statusCode)
+				.observe(durationInSeconds);
+		});
+
 		next();
 	});
 

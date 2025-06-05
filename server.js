@@ -1,7 +1,12 @@
 const config = require('./config/config')
+const promClient = require('prom-client')
+let { register } = require('./app/util/metrics')
+
 
 // Init the express application
 const app = require('./config/express')()
+
+promClient.collectDefaultMetrics({ register });
 
 // Start the app by listening on <port>
 app.listen(config.port)

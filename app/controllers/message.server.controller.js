@@ -4,6 +4,7 @@ const Message = require('../models/message.model');
 const { isPalindrome } = require('../util/util')
 const { isValidText } = require('../util/validator')
 const _ = require('lodash');
+const { register } = require('../util/metrics')
 
 const model = new Message()
 
@@ -94,4 +95,13 @@ exports.getHealth = function (req, res) {
     res.json({
         status: 'UP'
     })
+};
+
+exports.getMetrics = async function (req, res) {
+    try {
+        res.set('Content-Type', register.contentType);
+        res.end(await register.metrics());
+    } catch (err) {
+        res.status(500).end(err);
+    }
 };

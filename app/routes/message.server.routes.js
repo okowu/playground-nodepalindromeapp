@@ -12,4 +12,7 @@ router.delete('/messages/:id', message.deleteMessage)
 // Health
 router.get('/health', message.getHealth)
 
+// Metrics
+router.get('/metrics', message.getMetrics)
+
 module.exports = router
