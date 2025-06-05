@@ -89,3 +89,9 @@ exports.deleteMessage = function (req, res) {
             });
         });
 };
+
+exports.getHealth = function (req, res) {
+    res.json({
+        status: 'UP'
+    })
+};
