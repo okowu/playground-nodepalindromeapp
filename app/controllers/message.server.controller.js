@@ -1,12 +1,14 @@
 'use strict';
 
 const Message = require('../models/message.model');
+const { isPalindrome } = require('../util/util')
+const { isValidText } = require('../util/validator')
 const _ = require('lodash');
 
 const model = new Message()
 
 exports.getMessages = function (req, res) {
-    model.find({}, {text: 1}).exec(function (err, messages) {
+    model.find({}, { text: 1 }).exec(function (err, messages) {
         if (err) {
             res.status(500).send({
                 message: 'Database error finding messages.'
@@ -19,7 +21,7 @@ exports.getMessages = function (req, res) {
 };
 
 exports.getSingleMessage = function (req, res) {
-    model.findById(req.params.id, {text: 1})
+    model.findById(req.params.id, { text: 1 })
         .exec(function (err, message) {
             if (!message || err) {
                 res.status(404).send({
@@ -28,20 +30,38 @@ exports.getSingleMessage = function (req, res) {
                 return;
             }
             res.json(message);
-    });
+        });
 };
 
-exports.postMessage = function (req, res) {
+exports.postMessage = async function (req, res) {
     console.log(req.body)
-    let savedMessage = model.insert(req.body)
-    if (_.isError(savedMessage)) {
-        res.status(500).send({
-            message: 'Database error saving new message.'
+
+    // validate request body
+    const errors = await isValidText(req)
+
+    if (!_.isEmpty(errors)) {
+        res.status(400).send({ errors })
+        return
+    }
+
+    // check if the text is a palindrome
+    const text = req.body.text
+
+    const data = {
+        text,
+        isPalindrome: isPalindrome(text)
+    }
+
+    try {
+        const savedMessage = await model.insert(data)
+        res.json(savedMessage);
+    } catch (err) {
+        console.log(err)
+        res.status(err?.status || 500).send({
+            message: err?.message || 'Database error saving new message.'
         });
         return;
     }
-
-    res.json(savedMessage);
 };
 
 exports.deleteMessage = function (req, res) {

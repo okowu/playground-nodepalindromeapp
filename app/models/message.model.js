@@ -26,10 +26,19 @@ class Message {
 	}
 
 	insert(data) {
-		return db.insert(data, (err, newDoc) => {
-			if (err)
-				return err
-			return newDoc
+		return new Promise((resolve, reject) => {
+			db.insert(data, (err, newDoc) => {
+				if (err) {
+					if (err?.errorType === 'uniqueViolated') {
+						const message = `Can not insert record '${data.text}' as it already exists`
+						const error = new Error(message, { cause: err })
+						error.status = 409
+						return reject(error)
+					}
+					return reject(err)
+				}
+				return resolve(newDoc)
+			})
 		})
 	}
 }
