@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: nss-service
+spec:
+  selector:
+    app: nss
+  type: LoadBalancer
+  ports:
+    - port: 3000
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nss-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nss
+  template:
+    metadata:
+      labels:
+        app: nss
+    spec:
+      containers:
+        - name: nss
+          image: oscarkowu/nss:1410c12
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          livenessProbe:
+            httpGet:
+              path: /api/v1/health
+              port: 8080
+            initialDelaySeconds: 3
+            periodSeconds: 3
+            failureThreshold: 2
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
